@@ -2,6 +2,9 @@ from tkinter import *
 from PIL import ImageTk, Image
 from google_images_download import googleimagesdownload as gID
 
+def splitString(string):
+    return string.split()
+
 def getCommands():
     stringArgs = "usage: google_images_download.py [-h] [-k KEYWORDS] [-kf KEYWORDS_FROM_FILE]"
     stringArgs +="\n                                 [-sk SUFFIX_KEYWORDS] [-pk PREFIX_KEYWORDS]"
@@ -28,15 +31,25 @@ def getCommands():
     stringArgs +="\n                                 [-is SAVE_SOURCE]"
     stringArgs +="\n                                 Example: --limit 5  --language \"Czech\""
     showText.configure(text=stringArgs)
-
-def normalActivity():
-    #Abc=keywordsEntry.get()
-    Menu.title("Google Images/GIF Downloader")
+def formArguments():
     entry = keywordsEntry.get()
-    #response = gID()
-    #absolute_image_paths = response.download({<"--keywords \"Model\" --limit 10">})
-    #defaultInputOption = StringVar(Menu)
-    #print (defaultInputOption)
+    otherEntries = otherEntry.get()
+    if otherEntries !="":           #Check if Entry is null
+        otherEntriesArray = splitString(otherEntries) #Separate variables
+        for i in range(0,(len(otherEntriesArray))//2):
+            Records[otherEntriesArray[i*2]] =otherEntriesArray[(i*2) +1]
+    Records['keywords'] = entry
+    return Records
+    
+def normalActivity():
+    buttonList =[previewButton, normalButton, placeholderButton, commandsButton, keywordsEntryText, keywordsEntry, otherEntryText, otherEntry]
+    forgetButton(buttonList) #clear old buttons
+    Menu.title("Google Images/GIF Downloader")
+    Records = formArguments()
+    #Records['limit'] = '3'
+    response = gID()            
+    absolute_image_paths = response.download(Records)
+    
     return
 def forgetButton(buttons):
     for button in buttons:
