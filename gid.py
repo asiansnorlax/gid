@@ -42,7 +42,7 @@ def formArguments():
     return Records
     
 def normalActivity():
-    buttonList =[previewButton, normalButton, placeholderButton, commandsButton, keywordsEntryText, keywordsEntry, otherEntryText, otherEntry]
+    buttonList =[previewButton, normalButton, placeholderButton, commandsButton, keywordsEntryText, keywordsEntry, otherEntryText, otherEntry, otherEntryText]
     forgetButton(buttonList) #clear old buttons
     Menu.title("Google Images/GIF Downloader")
     Records = formArguments()
@@ -58,7 +58,7 @@ def forgetButton(buttons):
 def previewActivity():
     global img      #So Image is not cleared by stack
     
-    buttonList =[previewButton, normalButton, placeholderButton, commandsButton, keywordsEntryText, keywordsEntry, otherEntryText, otherEntry]
+    buttonList =[previewButton, normalButton, placeholderButton, commandsButton, keywordsEntryText, keywordsEntry, otherEntryText, otherEntry, keywordsExampleText]
     forgetButton(buttonList) #clear old buttons
     showText.configure(text="Preview")
     showText.grid(row=8, column=3,columnspan=3,pady=5)
@@ -80,26 +80,35 @@ sizeList =["large", "medium", "icon", ">400*300", ">640*480", ">800*600", ">1024
     
 Menu = Tk() #Initialise Tkinter Window
 Menu.title("Google Images/GIF Downloader Preview Mode")         #Set Title of Window
+
 showText = Label(Menu,text = "Choose an Option")
 showText.grid(row=1, column=2,pady=5)
+suggestText = Label(Menu,text = "Get Keywords Suggestions")
+suggestText.grid(row=1, column=3)
 keywordsEntryText = Label(Menu,text = "Enter the keywords")
 keywordsEntryText.grid(row=2, column=1)
-otherEntryText = Label(Menu,text = "Enter the Other Keywords")
-otherEntryText.grid(row=3, column=1)
+keywordsExampleText = Label(Menu,text = "Example: Supergirl, Donald Trump")
+keywordsExampleText.grid(row=3, column=2)
+otherEntryText = Label(Menu,text = "Enter the other arguments")
+otherEntryText.grid(row=4, column=1)
+otherEntryText = Label(Menu,text = "Example: limit 20 language czech")
+otherEntryText.grid(row=5, column=2)
 
-keywordsEntry = Entry(bd =5, width=100)             #Used to collect What item to search for by user ("Superman", "Donald Trump") etc
-keywordsEntry.grid(row=2, column=2,pady=5)
-otherEntry = Entry(bd =5, width=100)                #Used to collect other variables (Limit:"20", Language:"Czech") et
-otherEntry.grid(row=3, column=2,pady=5)
+keywordsEntry = Entry(bd =5, width=45)             #Used to collect What item to search for by user ("Superman", "Donald Trump") etc
+keywordsEntry.grid(row=2, column=2)
+otherEntry = Entry(bd =5, width=45)                #Used to collect other variables (Limit:"20", Language:"Czech") et
+otherEntry.grid(row=4, column=2,pady=5)
 
 commandsButton = Button(text ="Show commands", command = getCommands,bg="white",fg="black",justify=CENTER)
 commandsButton.grid(row=7, column=2,columnspan=5,pady=5)
-previewButton = Button(text ="Preview", command = previewActivity,bg="white",fg="black",justify=CENTER)
+previewButton = Button(text ="Preview", command = previewActivity,bg="white",fg="blue",justify=CENTER)
 previewButton.grid(row=8, column=2,columnspan=5,pady=5)
 normalButton = Button(text ="Normal Download", command = normalActivity,bg="gray",fg="white",justify=CENTER)  #Configure Buttons
-normalButton.grid(row=9, column=2,pady=5)
+normalButton.grid(row=9, column=2,columnspan=5,pady=5)
 placeholderButton = Button(text="???")
 placeholderButton.grid(row=10, column=2,columnspan=5,pady=5)
+suggestButton = Button(text="Suggest")
+suggestButton.grid(row=2, column=3,columnspan=5)
 
 Menu.mainloop()
 
