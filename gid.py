@@ -1,41 +1,6 @@
-import tkinter 
-import tkinter.messagebox
-import PIL.Image
-from PIL import ImageTk
 from tkinter import *
-import os
+from PIL import ImageTk, Image
 
-def normalActivity():
-    string = userEntry.get()
-    showText.configure(text=string)
-    Menu.title("Google Images/GIF Downloader")
-    return
-
-def previewActivity():
-    showText.configure(text="Preview") 
-
-
-    #path = "1.wmpvownqus8xwvylswsr.jpg"
-    #img = PhotoImage(file="1.wmpvownqus8xwvylswsr.jpg")
-    #img = tkinter.PhotoImage(file="1.wmpvownqus8xwvylswsr.jpg")
-    #Creates a Tkinter-compatible photo image, which can be used everywhere Tkinter expects an image object.
-    #img = ImageTk.Image.open(path)
-
-    #The Label widget is a standard Tkinter widget used to display a text or image on the screen.
-    #panel = Label(Menu, image = img)
-
-    #The Pack geometry manager packs widgets in rows or columns.
-    #panel.pack(side = "bottom", fill = "both", expand = "yes")
-    canv = Canvas(Menu, bg='white')
-
-    img = ImageTk.PhotoImage(Image.open("bll.jpg"))  # PIL solution
-    canv.create_image(anchor=NW, image=img)
-
-def commands():
-    showText.configure(text = getCommands(),font=("Helvetica", 8),justify=LEFT)      #Configure text in window       
-
-def gifActivity():
-    showText.configure(text="GIF")
 def getCommands():
     stringArgs = "usage: google_images_download.py [-h] [-k KEYWORDS] [-kf KEYWORDS_FROM_FILE]"
     stringArgs +="\n                                 [-sk SUFFIX_KEYWORDS] [-pk PREFIX_KEYWORDS]"
@@ -60,24 +25,52 @@ def getCommands():
     stringArgs +="\n                                 [-pr PREFIX] [-px PROXY] [-cd CHROMEDRIVER]"
     stringArgs +="\n                                 [-ri] [-sa] [-nn] [-of OFFSET] [-nd] [-sil]"
     stringArgs +="\n                                 [-is SAVE_SOURCE]"
-    stringArgs +="\n                                 Example: --keywords \"Polar Bears, Balloons\" --limit 20"
-    return stringArgs
-Menu = tkinter.Tk()                            #Create Window
-Menu.title("Google Images/GIF Downloader")
-                   #Pack Text into Window 'Menu'
-showText = Label(text = "Enter a command")
-showText.pack()
-userEntry = Entry()
-userEntry.pack()
-    
-commandButton = tkinter.Button(Menu, text ="Show Commands", command = commands,bg="white",fg="black",justify=CENTER)
-normalButton = tkinter.Button(Menu, text ="Normal Download", command = normalActivity,bg="gray",fg="white",justify=CENTER)  #Configure Buttons
-previewButton = tkinter.Button(Menu, text ="Preview Pictures", command = previewActivity,bg="blue",fg="white",justify=CENTER)
-gifButton = tkinter.Button(Menu, text ="Download GiFs", command = gifActivity,bg="green",fg="black",justify=CENTER)
+    stringArgs +="\n                                 Example: --limit 5  --language \"Czech\""
+    showText.configure(text=stringArgs)
 
-commandButton.pack()            #Pack Button into Window
-normalButton.pack()    
-previewButton.pack()
-gifButton.pack()
+def normalActivity():
+    showText.configure(text=string)
+    Menu.title("Google Images/GIF Downloader")
+    return
+def forgetButton(buttons):
+    for button in buttons:
+        button.grid_forget()
+    return
+def previewActivity():
+    global img      #So Image is not cleared by stack
+    Menu.title("Google Images/GIF Downloader Preview Mode")
+    buttonList =[previewButton, normalButton, placeholderButton, commandsButton, keywordsEntryText, keywordsEntry, otherEntryText, otherEntry]
+    forgetButton(buttonList) #clear old buttons
+    showText.configure(text="Preview")
+    showText.grid(row=8, column=3,columnspan=3,pady=5)
+    canv = Canvas(Menu, width=800, height=500, bg='white')
+    canv.grid(row=2, column=3)
+    img = ImageTk.PhotoImage(Image.open("1.wmpvownqus8xwvylswsr.jpg"))  # PIL solution
+    canv.create_image(20, 20, anchor=NW, image=img)
+    keepButton=Button(text="Delete").grid(row=9, column=2,columnspan=3,pady=5)
+    deleteButton=Button(text="Keep").grid(row=10, column=2,columnspan=3,pady=5)
+#Main Program   
+Menu = Tk()
+showText = Label(Menu,text = "Choose an Option")
+showText.grid(row=1, column=2,pady=5)
+keywordsEntryText = Label(Menu,text = "Enter the keywords")
+keywordsEntryText.grid(row=2, column=1)
+otherEntryText = Label(Menu,text = "Enter the Other Keywords")
+otherEntryText.grid(row=3, column=1)
 
-Menu.mainloop()  #InfiteLoop
+keywordsEntry = Entry(bd =5)
+keywordsEntry.grid(row=2, column=2,pady=5)
+otherEntry = Entry(bd =5)
+otherEntry.grid(row=3, column=2,pady=5)
+
+commandsButton = Button(text ="Show commands", command = getCommands,bg="white",fg="black",justify=CENTER)
+commandsButton.grid(row=7, column=2,columnspan=1,pady=5)
+previewButton = Button(text ="Preview", command = previewActivity,bg="white",fg="black",justify=CENTER)
+previewButton.grid(row=8, column=2,columnspan=1,pady=5)
+normalButton = Button(text ="Normal Download", command = normalActivity,bg="gray",fg="white",justify=CENTER)  #Configure Buttons
+normalButton.grid(row=9, column=2,pady=5)
+placeholderButton = Button(text="???")
+placeholderButton.grid(row=10, column=2,columnspan=1,pady=5)
+
+
+
