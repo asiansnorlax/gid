@@ -1,9 +1,11 @@
 from tkinter import *
+import tkinter.messagebox
 from PIL import ImageTk, Image
+import requests, json
 from google_images_download import googleimagesdownload as gID
 
-def splitString(string):
-    return string.split()
+def splitString(string, splitType):
+    return string.split(splitType)
 
 def getCommands():
     stringArgs = "usage: google_images_download.py [-h] [-k KEYWORDS] [-kf KEYWORDS_FROM_FILE]"
@@ -31,36 +33,81 @@ def getCommands():
     stringArgs +="\n                                 [-is SAVE_SOURCE]"
     stringArgs +="\n                                 Example: --limit 5  --language \"Czech\""
     showText.configure(text=stringArgs)
+
+def stringRemoveChar(string, removeChar):
+    for i in removeChar:
+        string = string.replace(i, '')
+    return string
 def formArguments():
     entry = keywordsEntry.get()
     otherEntries = otherEntry.get()
     if otherEntries !="":           #Check if Entry is null
-        otherEntriesArray = splitString(otherEntries) #Separate variables
+        otherEntriesArray = splitString(otherEntries , ' ') #Separate variables
         for i in range(0,(len(otherEntriesArray))//2):
             Records[otherEntriesArray[i*2]] =otherEntriesArray[(i*2) +1]
     Records['keywords'] = entry
     return Records
-    
+
+def suggestActivity():
+    def confirmSuggestion():
+        global keywordString
+        if not keywordString:
+            keywordString = elementShown.get()
+            keywordsEntry.delete(0,END)                     #Clear Everything in Keyword Entry Box
+            keywordsEntry.insert(0,elementShown.get())      #Populate Entry Box with the Keywords That user has searched before
+        else:
+            keywordString = keywordString + ',' + elementShown.get()
+            keywordsEntry.delete(0,END)                     #Clear Everything in Keyword Entry Box
+            keywordsEntry.insert(0,keywordString)           #Populate Entry Box with the Keywords That user has searched before
+        forgetTkinterStuff([keywordSuggestion, confirmSuggestionButton])  #Clear so they wont stack ontop of one another
+        
+    global keywordString
+    keyword = keywordsEntry.get()
+    if keyword != "":
+        if keywordString != "":
+            keyword = stringRemoveChar(keyword, [keywordString, ','])   
+        URL="http://suggestqueries.google.com/complete/search?client=firefox&q="
+        URL += keyword
+        headers = {'User-agent':'Mozilla/5.0'}
+        response = requests.get(URL, headers=headers)
+        result = json.loads(response.content.decode('utf-8'))
+        print(result)
+        elementShown = StringVar(Menu)                              #Holds a String
+        elementShown.set(result[1][0])                                   #Set String to be shown in the drop down menu
+        keywordSuggestion = OptionMenu(Menu,elementShown, *result[1])
+        keywordSuggestion.grid(row=2, column=4,columnspan=2)
+        confirmSuggestionButton = Button(text="Confirm suggestion", command = confirmSuggestion,bg="black",fg="white")
+        confirmSuggestionButton.grid(row=3, column=4,columnspan=2)
+    else:showMessageBox("No keywords", "Error! Please Enter a Keyword")
+def showMessageBox(messageTitle,string):
+    tkinter.messagebox.showinfo(messageTitle,string)
 def normalActivity():
-    buttonList =[previewButton, normalButton, placeholderButton, commandsButton, keywordsEntryText, keywordsEntry, otherEntryText, otherEntry, otherEntryText]
-    forgetButton(buttonList) #clear old buttons
+    #buttonList =[previewButton, normalButton, placeholderButton, commandsButton, keywordsEntryText, keywordsEntry, otherEntryText, otherEntry, otherEntryText, keywordsExampleText]
+    #forgetTkinterStuff(buttonList) #clear old buttons
     Menu.title("Google Images/GIF Downloader")
     Records = formArguments()
-    #Records['limit'] = '3'
     response = gID()            
     absolute_image_paths = response.download(Records)
+    Menu.close()
     
     return
-def forgetButton(buttons):
-    for button in buttons:
-        button.grid_forget()
+def forgetTkinterStuff(stuff):
+    for thing in stuff:
+        thing.grid_forget()
     return
+def globalExist(variable):
+    if variable in globals():
+        return True
+    else:
+        return False
 def previewActivity():
     global img      #So Image is not cleared by stack
     
-    buttonList =[previewButton, normalButton, placeholderButton, commandsButton, keywordsEntryText, keywordsEntry, otherEntryText, otherEntry, keywordsExampleText]
-    forgetButton(buttonList) #clear old buttons
-    showText.configure(text="Preview")
+    buttonList =[previewButton, normalButton, placeholderButton, commandsButton, keywordsEntryText, keywordsEntry, otherEntryText, otherEntry, keywordsExampleText, otherEntryText]
+    #placeholder = globalExist(showText)
+    #print(placeholder)
+    forgetTkinterStuff(buttonList) #clear old buttons
+    showText.configure(text="Picture Preview")
     showText.grid(row=8, column=3,columnspan=3,pady=5)
     canv = Canvas(Menu, width=800, height=500, bg='white')
     canv.grid(row=2, column=3)
@@ -68,9 +115,9 @@ def previewActivity():
     canv.create_image(20, 20, anchor=NW, image=img)
     keepButton=Button(text="Keep",bg="blue",fg="white").grid(row=9, column=2,columnspan=3,pady=5)
     deleteButton=Button(text="Delete",bg="black",fg="white").grid(row=10, column=2,columnspan=3,pady=5)
-#Main Program
-Records = {}
-#inputOption=[]
+#-----------------------------------------------------------------------Main Program
+keywordString = ""            #String Used to record the keywords entered
+Records = {}                  #Dictionary used to store all the Arguments to be send into google downloader
 inputOption = ["Entry"]
 formatList = ["jpg", "gif", "png", "bmp", "svg", "webp", "ico", "raw"]
 userRightList =["labeled-for-reuse-with-modifications","labeled-for-reuse","labeled-for-noncommercial-reuse-with-modification","labeled-for-nocommercial-reuse"]
@@ -79,17 +126,17 @@ sizeList =["large", "medium", "icon", ">400*300", ">640*480", ">800*600", ">1024
 
     
 Menu = Tk() #Initialise Tkinter Window
-Menu.title("Google Images/GIF Downloader Preview Mode")         #Set Title of Window
+Menu.title("Google Images Downloader")         #Set Title of Window
 
 showText = Label(Menu,text = "Choose an Option")
 showText.grid(row=1, column=2,pady=5)
 suggestText = Label(Menu,text = "Get Keywords Suggestions")
 suggestText.grid(row=1, column=3)
-keywordsEntryText = Label(Menu,text = "Enter the keywords")
+keywordsEntryText = Label(Menu,text = "Enter the keywords *")
 keywordsEntryText.grid(row=2, column=1)
 keywordsExampleText = Label(Menu,text = "Example: Supergirl, Donald Trump")
 keywordsExampleText.grid(row=3, column=2)
-otherEntryText = Label(Menu,text = "Enter the other arguments")
+otherEntryText = Label(Menu,text = "Enter the arguments")
 otherEntryText.grid(row=4, column=1)
 otherEntryText = Label(Menu,text = "Example: limit 20 language czech")
 otherEntryText.grid(row=5, column=2)
@@ -99,16 +146,18 @@ keywordsEntry.grid(row=2, column=2)
 otherEntry = Entry(bd =5, width=45)                #Used to collect other variables (Limit:"20", Language:"Czech") et
 otherEntry.grid(row=4, column=2,pady=5)
 
+
+
 commandsButton = Button(text ="Show commands", command = getCommands,bg="white",fg="black",justify=CENTER)
 commandsButton.grid(row=7, column=2,columnspan=5,pady=5)
-previewButton = Button(text ="Preview", command = previewActivity,bg="white",fg="blue",justify=CENTER)
+previewButton = Button(text ="Preview", command = previewActivity,bg="white",fg="blue",justify=CENTER)          #Button for starting Picture Preview Mode
 previewButton.grid(row=8, column=2,columnspan=5,pady=5)
-normalButton = Button(text ="Normal Download", command = normalActivity,bg="gray",fg="white",justify=CENTER)  #Configure Buttons
+normalButton = Button(text ="Normal Download", command = normalActivity,bg="gray",fg="white",justify=CENTER)    #Button for normal image Download
 normalButton.grid(row=9, column=2,columnspan=5,pady=5)
 placeholderButton = Button(text="???")
 placeholderButton.grid(row=10, column=2,columnspan=5,pady=5)
-suggestButton = Button(text="Suggest")
-suggestButton.grid(row=2, column=3,columnspan=5)
+suggestButton = Button(text="Suggest", command = suggestActivity,bg="black",fg="white")                         #Button to show keyword Suggestion
+suggestButton.grid(row=2, column=3,columnspan=2)
 
 Menu.mainloop()
 
